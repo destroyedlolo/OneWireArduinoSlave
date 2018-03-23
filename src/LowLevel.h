@@ -112,8 +112,8 @@ __attribute__((always_inline)) static inline void UserTimer_Run(short skipTicks)
 class Pin
 {
 private:
-	volatile IO_REG_TYPE *reg_;
 	IO_REG_TYPE mask_;
+	volatile IO_REG_TYPE *reg_;
 	byte interruptNumber_;
 	byte pinNumber_;
 
