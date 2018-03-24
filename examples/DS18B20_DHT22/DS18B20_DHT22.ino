@@ -92,6 +92,8 @@ void setup(){
 void loop(){
 	delay(10);
 
+		// No need to have a local copy of "state" as we are looking
+		// for only one value
 	if(state == DeviceState::CONVERTING){	// start conversion
 		float temperature = 0;
 		float humidite = 0;
@@ -103,10 +105,9 @@ void loop(){
 			Serial.println(err);
 #endif
 			temperature = 85;
-		} else {
+		} else 
 			setTemperature( temperature );
-			state = DeviceState::TEMPERATUREREADY;
-			OWSlave.beginWriteBit(1, true);
-		}
+		state = DeviceState::TEMPERATUREREADY;
+		OWSlave.beginWriteBit(1, true);
 	}
 }
