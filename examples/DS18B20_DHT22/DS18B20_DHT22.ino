@@ -55,6 +55,7 @@ void owRcv( OneWireSlave::ReceiveEvent evt, byte cmd ){
 		case OW_Cmd::START_CONVERSION:
 			state = DeviceState::CONVERTING;
 			OWSlave.beginWriteBit(0, true); // send zeros as long as the conversion is not finished
+			// consequently, we don't have to take care of race condition as no other command can arrive
 			break;
 		case OW_Cmd::READ_SCRATCHPAD:
 			state = DeviceState::WAIT4RESET;
@@ -72,6 +73,9 @@ void owRcv( OneWireSlave::ReceiveEvent evt, byte cmd ){
 void setTemperature( float temp ){	// Write given temperature to the scratchpad
 	int16_t raw = (int16_t)(temp * 16.0f + 0.5f);
 
+		// We don't care about race condition as well as only one command
+		// can be processed at a time otherwise we are failing in error/collision
+		// condition.
 	scratchpad[0] = (byte)raw;
 	scratchpad[1] = (byte)(raw >> 8);
 	scratchpad[8] = OWSlave.crc8((const byte*)scratchpad, 8);
