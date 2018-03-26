@@ -41,6 +41,7 @@ enum DeviceState {
 };
 
 volatile DeviceState state = DeviceState::WAIT4RESET;
+volatile unsigned long conversionStartTime = 0;
 
 void owRcv( OneWireSlave::ReceiveEvent evt, byte cmd ){
 	switch( evt ){
@@ -53,9 +54,11 @@ void owRcv( OneWireSlave::ReceiveEvent evt, byte cmd ){
 	case OneWireSlave::RE_Byte:
 		switch( cmd ){
 		case OW_Cmd::START_CONVERSION:
-			state = DeviceState::CONVERTING;
-			OWSlave.beginWriteBit(0, true); // send zeros as long as the conversion is not finished
-			// consequently, we don't have to take care of race condition as no other command can arrive
+				// Do a new request only if enough time passed
+			if( millis() < conversionStartTime || millis() > conversionStartTime + 2000 ){
+				state = DeviceState::CONVERTING;
+				OWSlave.beginWriteBit(0, true); // send zeros as long as the conversion is not finished
+			}
 			break;
 		case OW_Cmd::READ_SCRATCHPAD:
 			state = DeviceState::WAIT4RESET;
@@ -96,21 +99,25 @@ void setup(){
 void loop(){
 	delay(10);
 
-		// No need to have a local copy of "state" as we are looking
-		// for only one value
 	if(state == DeviceState::CONVERTING){	// start conversion
 		float temperature = 0;
 		float humidite = 0;
 		int err;
 
+		conversionStartTime = millis();
 		if((err = DHT.read2(pinDHT, &temperature, &humidite, NULL)) != SimpleDHTErrSuccess){
 #ifdef DEBUG
 			Serial.print("\nError while reading, err=");
 			Serial.println(err);
 #endif
 			temperature = 85;
-		} else 
+		} else {
+#ifdef DEBUG
+			Serial.print("Temperature :");
+			Serial.println(temperature);
+#endif
 			setTemperature( temperature );
+		}
 		state = DeviceState::TEMPERATUREREADY;
 		OWSlave.beginWriteBit(1, true);
 	}
