@@ -59,6 +59,10 @@ void owRcv( OneWireSlave::ReceiveEvent evt, byte cmd ){
 				state = DeviceState::CONVERTING;
 				OWSlave.beginWriteBit(0, true); // send zeros as long as the conversion is not finished
 			}
+#ifdef DEBUG
+			else
+				Serial.println(F("Ignored StartConv"));
+#endif
 			break;
 		case OW_Cmd::READ_SCRATCHPAD:
 			state = DeviceState::WAIT4RESET;
@@ -68,7 +72,7 @@ void owRcv( OneWireSlave::ReceiveEvent evt, byte cmd ){
 		default:
 			Serial.print(F("Unknown command :"));
 			Serial.println( cmd, HEX );
-#endif	
+#endif
 		}
 	}
 }
