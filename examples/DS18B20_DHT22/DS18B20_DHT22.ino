@@ -42,11 +42,13 @@ enum DeviceState {
 
 volatile DeviceState state = DeviceState::WAIT4RESET;
 volatile unsigned long conversionStartTime = 0;
+volatile int ignByte = 0;	// Bytes to be ignored
 
 void owRcv( OneWireSlave::ReceiveEvent evt, byte cmd ){
 	switch( evt ){
 	case OneWireSlave::RE_Reset:
 		state = DeviceState::WAIT4COMMAND;
+		ignByte = 0;
 #ifdef DEBUG
 		Serial.println(F("Reset"));
 #endif
@@ -58,10 +60,10 @@ void owRcv( OneWireSlave::ReceiveEvent evt, byte cmd ){
 #endif
 		break;
 	case OneWireSlave::RE_Byte:
-		switch( cmd ){
+		if( state == DeviceState::WAIT4COMMAND ) switch( cmd ){
 		case OW_Cmd::START_CONVERSION:
 				// Do a new request only if enough time passed
-			if( !millis() || millis() < conversionStartTime || millis() > conversionStartTime + 2000 ){
+			if( !conversionStartTime || millis() < conversionStartTime || millis() > conversionStartTime + 2000 ){
 				state = DeviceState::CONVERTING;
 				OWSlave.beginWriteBit(0, true); // send zeros as long as the conversion is not finished
 			}
