@@ -15,6 +15,8 @@ const byte owROM[7] = { 0x28, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02 };
 
 enum OW_Cmd {
 	START_CONVERSION = 0x44,
+	WRITE_SCRATCHPAD = 0x4e,
+	READ_POWERSUPPLY = 0xb4,
 	READ_SCRATCHPAD = 0xBE
 };
 
@@ -42,13 +44,11 @@ enum DeviceState {
 
 volatile DeviceState state = DeviceState::WAIT4RESET;
 volatile unsigned long conversionStartTime = 0;
-volatile int ignByte = 0;	// Bytes to be ignored
 
 void owRcv( OneWireSlave::ReceiveEvent evt, byte cmd ){
 	switch( evt ){
 	case OneWireSlave::RE_Reset:
 		state = DeviceState::WAIT4COMMAND;
-		ignByte = 0;
 #ifdef DEBUG
 		Serial.println(F("Reset"));
 #endif
@@ -76,8 +76,13 @@ void owRcv( OneWireSlave::ReceiveEvent evt, byte cmd ){
 			state = DeviceState::WAIT4RESET;
 			OWSlave.beginWrite((const byte*)scratchpad, 9, 0);
 			break;
-#ifdef DEBUG
+		case OW_Cmd::WRITE_SCRATCHPAD:
+		case OW_Cmd::READ_POWERSUPPLY:
+			state = DeviceState::WAIT4RESET;	// Ignore parameters
+			break;
 		default:
+			state = DeviceState::WAIT4RESET;
+#ifdef DEBUG
 			Serial.print(F("Unknown command :"));
 			Serial.println( cmd, HEX );
 #endif
@@ -86,8 +91,7 @@ void owRcv( OneWireSlave::ReceiveEvent evt, byte cmd ){
 }
 
 void setTemperature( float temp ){	// Write given temperature to the scratchpad
-	int16_t raw = (int16_t)(temp * 16.0f + 0.5f);
-
+	int16_t raw = (int16_t)(temp * 16.0f + 0.5);
 		// We don't care about race condition as well as only one command
 		// can be processed at a time otherwise we are failing in error/collision
 		// condition.
@@ -128,8 +132,8 @@ void loop(){
 			Serial.print("Temperature :");
 			Serial.println(temperature);
 #endif
-			setTemperature( temperature );
 		}
+		setTemperature( temperature );
 		state = DeviceState::TEMPERATUREREADY;
 		OWSlave.beginWriteBit(1, true);
 	}
