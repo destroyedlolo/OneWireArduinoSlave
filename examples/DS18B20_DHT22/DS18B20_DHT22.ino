@@ -77,13 +77,16 @@ void owRcv( OneWireSlave::ReceiveEvent evt, byte cmd ){
 			break;
 		case OW_Cmd::READ_SCRATCHPAD:
 #ifdef DEBUG
-				Serial.println(F("Reading scratchpad"));
+			Serial.println(F("Reading scratchpad"));
 #endif
 			state = DeviceState::WAIT4RESET;
 			OWSlave.beginWrite((const byte*)scratchpad, 9, 0);
 			break;
 		case OW_Cmd::WRITE_SCRATCHPAD:
 		case OW_Cmd::READ_POWERSUPPLY:
+#ifdef DEBUG
+			Serial.println(F("Ignoring WriteSP or ReadPS"));
+#endif
 			state = DeviceState::WAIT4RESET;	// Ignore parameters
 			break;
 		default:
