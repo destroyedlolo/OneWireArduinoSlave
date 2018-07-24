@@ -123,13 +123,13 @@ void loop(){
 		conversionStartTime = millis();
 		if((err = DHT.read2(pinDHT, &temperature, &humidite, NULL)) != SimpleDHTErrSuccess){
 #ifdef DEBUG
-			Serial.print("\nError while reading, err=");
+			Serial.print(F("\nError while reading, err="));
 			Serial.println(err);
 #endif
 			temperature = 85;
 		} else {
 #ifdef DEBUG
-			Serial.print("Temperature :");
+			Serial.print(F("Temperature :"));
 			Serial.println(temperature);
 #endif
 		}
