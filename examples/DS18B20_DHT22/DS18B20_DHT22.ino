@@ -66,6 +66,9 @@ void owRcv( OneWireSlave::ReceiveEvent evt, byte cmd ){
 			if( !conversionStartTime || millis() < conversionStartTime || millis() > conversionStartTime + 2000 ){
 				state = DeviceState::CONVERTING;
 				OWSlave.beginWriteBit(0, true); // send zeros as long as the conversion is not finished
+#ifdef DEBUG
+				Serial.println(F("Starting conversion"));
+#endif
 			}
 #ifdef DEBUG
 			else
@@ -73,6 +76,9 @@ void owRcv( OneWireSlave::ReceiveEvent evt, byte cmd ){
 #endif
 			break;
 		case OW_Cmd::READ_SCRATCHPAD:
+#ifdef DEBUG
+				Serial.println(F("Reading scratchpad"));
+#endif
 			state = DeviceState::WAIT4RESET;
 			OWSlave.beginWrite((const byte*)scratchpad, 9, 0);
 			break;
@@ -120,10 +126,14 @@ void loop(){
 		float humidite = 0;
 		int err;
 
+#ifdef DEBUG
+		Serial.print(F("Converting ... "));
+#endif
+
 		conversionStartTime = millis();
 		if((err = DHT.read2(pinDHT, &temperature, &humidite, NULL)) != SimpleDHTErrSuccess){
 #ifdef DEBUG
-			Serial.print(F("\nError while reading, err="));
+			Serial.print(F("Error while reading,\nerr="));
 			Serial.print(err);
 			switch(err){
 			case SimpleDHTErrStartLow :
@@ -155,7 +165,6 @@ void loop(){
 			temperature = 85;
 		} else {
 #ifdef DEBUG
-			Serial.print(F("Temperature :"));
 			Serial.println(temperature);
 #endif
 		}
