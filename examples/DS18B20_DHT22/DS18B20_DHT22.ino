@@ -124,7 +124,33 @@ void loop(){
 		if((err = DHT.read2(pinDHT, &temperature, &humidite, NULL)) != SimpleDHTErrSuccess){
 #ifdef DEBUG
 			Serial.print(F("\nError while reading, err="));
-			Serial.println(err);
+			Serial.print(err);
+			switch(err){
+			case SimpleDHTErrStartLow :
+				Serial.println(F(" - Error to wait for start low signal"));
+				break;
+			case SimpleDHTErrStartHigh :
+				Serial.println(F(" - Error to wait for start high signal"));
+				break;
+			case SimpleDHTErrDataLow :
+				Serial.println(F(" - Error to wait for data start low signal"));
+				break;
+			case SimpleDHTErrDataRead :
+				Serial.println(F(" - Error to wait for data read signal"));
+				break;
+			case SimpleDHTErrDataEOF :
+				Serial.println(F(" - Error to wait for data EOF signal"));
+				break;
+			case SimpleDHTErrDataChecksum :
+				Serial.println(F(" - Error to validate the checksum"));
+				break;
+			case SimpleDHTErrZeroSamples :
+				Serial.println(F(" - Error when temperature and humidity are zero, it shouldn't happen"));
+				break;
+			default :
+				Serial.println(F(" - who know ?"));
+				break;
+			};
 #endif
 			temperature = 85;
 		} else {
