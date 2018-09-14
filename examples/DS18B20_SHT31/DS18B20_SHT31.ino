@@ -47,12 +47,13 @@ volatile DeviceState state = DeviceState::WAIT4RESET;
 volatile unsigned long conversionStartTime = 0;
 
 void setTemperature( float temp ){	// Write given temperature to the scratchpad
-	int16_t raw = (int16_t)(temp * 16.0f + 0.5);
+	int16_t raw = (int16_t)(temp * 16.0f);
 		// We don't care about race condition as well as only one command
 		// can be processed at a time otherwise we are failing in error/collision
 		// condition.
 	scratchpad[0] = (byte)raw;
 	scratchpad[1] = (byte)(raw >> 8);
+	scratchpad[4] = 0x7f;	// Ensure 12b responses
 	scratchpad[8] = OWSlave.crc8((const byte*)scratchpad, 8);
 
 #ifdef DEBUG
@@ -136,7 +137,7 @@ void setup() {
 	sht31.begin(0x44);	// Start with the sht31
 
 #ifdef DEBUG
-		Serial.print(F("Ready, waiting for 1-wire command ... "));
+	Serial.print(F("Ready, waiting for 1-wire command ... "));
 #endif	
 }
 
