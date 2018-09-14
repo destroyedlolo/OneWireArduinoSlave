@@ -107,6 +107,12 @@ void setTemperature( float temp ){	// Write given temperature to the scratchpad
 	scratchpad[0] = (byte)raw;
 	scratchpad[1] = (byte)(raw >> 8);
 	scratchpad[8] = OWSlave.crc8((const byte*)scratchpad, 8);
+
+#ifdef DEBUG
+	Serial.print(F("SP : "));
+	Serial.println( (float)(((scratchpad[1] << 8) + scratchpad[0] ) *0.0625) );
+#endif
+
 }
 
 void setup(){
